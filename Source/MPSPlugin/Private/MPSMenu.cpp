@@ -4,6 +4,7 @@
 #include "MPSMenu.h"
 #include "Components/Button.h"
 #include "MPSSubsystem.h"
+#include "OnlineSessionSettings.h"
 
 void UMPSMenu::MenuSetup(int32 PublicConnections, FString TypeOfMatch)
 {
@@ -37,6 +38,10 @@ void UMPSMenu::MenuSetup(int32 PublicConnections, FString TypeOfMatch)
     if (MPSSubsystem)
     {
         MPSSubsystem->MultiplayerOnCreateSessionComplete.AddDynamic(this, &ThisClass::OnCreateSession);
+        MPSSubsystem->MultiplayerOnFindSessionsComplete.AddUObject(this, &ThisClass::OnFindSessions);
+        MPSSubsystem->MultiplayerOnJoinSessionComplete.AddUObject(this, &ThisClass::OnJoinSession);
+        MPSSubsystem->MultiplayerOnStartSessionComplete.AddDynamic(this, &ThisClass::OnStartSession);
+        MPSSubsystem->MultiplayerOnDestroySessionComplete.AddDynamic(this, &ThisClass::OnDestroySession);
     }
 }
 
@@ -89,7 +94,7 @@ void UMPSMenu::OnCreateSession(bool bWasSuccessful)
     }
 }
 
-void UMPSMenu::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessfeul) {}
+void UMPSMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessfeul) {}
 
 void UMPSMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result) {}
 

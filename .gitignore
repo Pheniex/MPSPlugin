@@ -1,0 +1,9 @@
+.git
+.vs
+*.sln
+DerivedDataCache/
+Intermediate/
+Saved/
+Binaries/
+Build/
+WindowsNoEditor/

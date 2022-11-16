@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
 #include "MPSMenu.generated.h"
 
 class UButton;
@@ -26,9 +28,11 @@ protected:
     //Callbacks for custom delegates on MPSSubsystem
     UFUNCTION()
     void OnCreateSession(bool bWasSuccessful);
-    void OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessfeul);
+    void OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessfeul);
     void OnJoinSession(EOnJoinSessionCompleteResult::Type Result);
+    UFUNCTION()
     void OnStartSession(bool bWasSuccessfeul);
+    UFUNCTION()
     void OnDestroySession(bool bWasSuccessfeul);
 
 private:

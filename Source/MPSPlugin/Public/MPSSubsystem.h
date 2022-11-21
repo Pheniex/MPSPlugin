@@ -48,6 +48,7 @@ protected:
 private:
     IOnlineSessionPtr SessionInterface;
     TSharedPtr<FOnlineSessionSettings> LastSessionSettings;
+    TSharedPtr<FOnlineSessionSearch> LastSessionSearch;
 
     //OnlineSessionInterfaceDelegate list
     FOnCreateSessionCompleteDelegate CreateSessionCompleteDelegate;
@@ -64,4 +65,8 @@ private:
 
     FOnDestroySessionCompleteDelegate DestroySessionCompleteDelegate;
     FDelegateHandle DestroySessionCompleteDelegateHandle;
+
+    bool bCreateSessionOnDestroy{false};
+    int32 LastNumOfPublicConnections;
+    FString LastMatchType;
 };

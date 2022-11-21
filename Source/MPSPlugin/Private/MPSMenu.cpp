@@ -5,9 +5,11 @@
 #include "Components/Button.h"
 #include "MPSSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "OnlineSubsystem.h"
 
-void UMPSMenu::MenuSetup(int32 PublicConnections, FString TypeOfMatch)
+void UMPSMenu::MenuSetup(int32 PublicConnections, FString TypeOfMatch, FString PathToLobby)
 {
+    LobbyPath = FString::Printf(TEXT("%s?listen"), *PathToLobby);
     NumPublicConnections = PublicConnections;
     MatchType = TypeOfMatch;
 
@@ -82,7 +84,7 @@ void UMPSMenu::OnCreateSession(bool bWasSuccessful)
         UWorld* World = GetWorld();
         if (World)
         {
-            World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+            World->ServerTravel(LobbyPath);
         }
     }
     else
@@ -91,12 +93,56 @@ void UMPSMenu::OnCreateSession(bool bWasSuccessful)
         {
             GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Session created FAILED")));
         }
+        HostButton->SetIsEnabled(true);
     }
 }
 
-void UMPSMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessfeul) {}
+void UMPSMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionResults, bool bWasSuccessfeul) 
+{
+    if (MPSSubsystem == nullptr)
+    {
+        return;
+    }
 
-void UMPSMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result) {}
+    for (auto Res : SessionResults)
+    {
+        FString SettingsValue;
+        Res.Session.SessionSettings.Get(FName("MatchType"), SettingsValue);
+        if (SettingsValue == MatchType)
+        {
+            MPSSubsystem->JoinSession(Res);
+            return;
+        }
+    }
+    if (!bWasSuccessfeul || SessionResults.Num() == 0)
+    {
+        JoinButton->SetIsEnabled(true);
+    }
+}
+
+void UMPSMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result) 
+{
+    IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
+    if (Subsystem)
+    {
+        IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
+        if (SessionInterface.IsValid())
+        {
+            FString Adr;
+            SessionInterface->GetResolvedConnectString(NAME_GameSession, Adr);
+
+            APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
+            if (PlayerController)
+            {
+                PlayerController->ClientTravel(Adr, ETravelType::TRAVEL_Absolute);
+            }
+        }
+    }
+    if (Result != EOnJoinSessionCompleteResult::Success)
+    {
+        JoinButton->SetIsEnabled(true);
+    }
+}
 
 void UMPSMenu::OnStartSession(bool bWasSuccessfeul) {}
 
@@ -104,6 +150,7 @@ void UMPSMenu::OnDestroySession(bool bWasSuccessfeul) {}
 
 void UMPSMenu::HostButtonClicked() 
 {
+    HostButton->SetIsEnabled(false);
     if (MPSSubsystem)
     {
         MPSSubsystem->CreateSession(NumPublicConnections, MatchType);
@@ -112,9 +159,10 @@ void UMPSMenu::HostButtonClicked()
 
 void UMPSMenu::JoinButtonClicked() 
 {
-    if (GEngine)
+    JoinButton->SetIsEnabled(false);
+    if (MPSSubsystem)
     {
-        GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Join Button Clicked")));
+        MPSSubsystem->FindSessions(10000);
     }
 }
 

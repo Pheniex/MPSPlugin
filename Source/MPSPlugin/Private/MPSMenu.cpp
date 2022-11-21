@@ -93,6 +93,7 @@ void UMPSMenu::OnCreateSession(bool bWasSuccessful)
         {
             GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString(TEXT("Session created FAILED")));
         }
+        HostButton->SetIsEnabled(true);
     }
 }
 
@@ -112,6 +113,10 @@ void UMPSMenu::OnFindSessions(const TArray<FOnlineSessionSearchResult>& SessionR
             MPSSubsystem->JoinSession(Res);
             return;
         }
+    }
+    if (!bWasSuccessfeul || SessionResults.Num() == 0)
+    {
+        JoinButton->SetIsEnabled(true);
     }
 }
 
@@ -133,6 +138,10 @@ void UMPSMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
             }
         }
     }
+    if (Result != EOnJoinSessionCompleteResult::Success)
+    {
+        JoinButton->SetIsEnabled(true);
+    }
 }
 
 void UMPSMenu::OnStartSession(bool bWasSuccessfeul) {}
@@ -141,6 +150,7 @@ void UMPSMenu::OnDestroySession(bool bWasSuccessfeul) {}
 
 void UMPSMenu::HostButtonClicked() 
 {
+    HostButton->SetIsEnabled(false);
     if (MPSSubsystem)
     {
         MPSSubsystem->CreateSession(NumPublicConnections, MatchType);
@@ -149,6 +159,7 @@ void UMPSMenu::HostButtonClicked()
 
 void UMPSMenu::JoinButtonClicked() 
 {
+    JoinButton->SetIsEnabled(false);
     if (MPSSubsystem)
     {
         MPSSubsystem->FindSessions(10000);

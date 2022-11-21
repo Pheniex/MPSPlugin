@@ -28,7 +28,11 @@ void UMPSSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
     auto ExsistingSession = SessionInterface->GetNamedSession(NAME_GameSession);
     if (ExsistingSession != nullptr)
     {
-        SessionInterface->DestroySession(NAME_GameSession);
+        bCreateSessionOnDestroy = true;
+        LastNumOfPublicConnections = NumPublicConnections;
+        LastMatchType = MatchType;
+        
+        DestroySession();
     }
 
     //Store delegate in FDelegateHandle
@@ -108,6 +112,19 @@ void UMPSSubsystem::StartSession()
 
 void UMPSSubsystem::DestroySession() 
 {
+    if (!SessionInterface.IsValid())
+    {
+        MultiplayerOnDestroySessionComplete.Broadcast(false);
+        return;
+    }
+
+    DestroySessionCompleteDelegateHandle = SessionInterface->AddOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegate);
+
+    if (!SessionInterface->DestroySession(NAME_GameSession))
+    {
+        SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+        MultiplayerOnDestroySessionComplete.Broadcast(false);
+    }
 }
 
 void UMPSSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful) 
@@ -152,10 +169,20 @@ void UMPSSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompl
     MultiplayerOnJoinSessionComplete.Broadcast(Result);
 }
 
-void UMPSSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful) 
+void UMPSSubsystem::OnStartSessionComplete(FName SessionName, bool bWasSuccessful) 
 {
 }
 
-void UMPSSubsystem::OnStartSessionComplete(FName SessionName, bool bWasSuccessful) 
+void UMPSSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSuccessful) 
 {
+    if (SessionInterface)
+    {
+        SessionInterface->ClearOnDestroySessionCompleteDelegate_Handle(DestroySessionCompleteDelegateHandle);
+    }
+    if (bWasSuccessful && bCreateSessionOnDestroy)
+    {
+        bCreateSessionOnDestroy = false;
+        CreateSession(LastNumOfPublicConnections, LastMatchType);
+    }
+    MultiplayerOnDestroySessionComplete.Broadcast(bWasSuccessful);
 }

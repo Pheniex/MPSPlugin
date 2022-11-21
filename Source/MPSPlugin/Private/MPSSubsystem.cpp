@@ -43,6 +43,7 @@ void UMPSSubsystem::CreateSession(int32 NumPublicConnections, FString MatchType)
     LastSessionSettings->bUsesPresence = true;
     LastSessionSettings->bUseLobbiesIfAvailable = true;     //need for 5.0 and leater
     LastSessionSettings->Set(FName("MatchType"), MatchType, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
+    LastSessionSettings->BuildUniqueId = 1;//
 
     const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
     if (!SessionInterface->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), NAME_GameSession, *LastSessionSettings))

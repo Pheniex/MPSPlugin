@@ -7,8 +7,9 @@
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 
-void UMPSMenu::MenuSetup(int32 PublicConnections, FString TypeOfMatch)
+void UMPSMenu::MenuSetup(int32 PublicConnections, FString TypeOfMatch, FString PathToLobby)
 {
+    LobbyPath = FString::Printf(TEXT("%s?listen"), *PathToLobby);
     NumPublicConnections = PublicConnections;
     MatchType = TypeOfMatch;
 
@@ -83,7 +84,7 @@ void UMPSMenu::OnCreateSession(bool bWasSuccessful)
         UWorld* World = GetWorld();
         if (World)
         {
-            World->ServerTravel("/Game/ThirdPerson/Maps/Lobby?listen");
+            World->ServerTravel(LobbyPath);
         }
     }
     else
